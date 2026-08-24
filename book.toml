@@ -1,0 +1,28 @@
+[book]
+title = "Modul 159 – Directoryservices"
+description = "Lernunterlagen zum Modul 159: Directoryservices konfigurieren und in Betrieb nehmen (TBZ)."
+authors = ["TBZ – Modul 159"]
+language = "de"
+src = "src"
+
+[build]
+build-dir = "public"
+create-missing = false
+
+[preprocessor.alerts]
+
+[output.html]
+default-theme = "rust"
+preferred-dark-theme = "navy"
+git-repository-url = "https://gitlab.com/ch-tbz-it/Stud/m159"
+edit-url-template = "https://gitlab.com/ch-tbz-it/Stud/m159/-/edit/main/{path}"
+no-section-label = true
+
+[output.html.fold]
+enable = true
+level = 1
+
+[output.html.search]
+enable = true
+limit-results = 30
+use-boolean-and = true
