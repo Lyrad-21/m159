@@ -52,11 +52,14 @@ Alle weiteren Ports sind nur innerhalb des VPCs offen.
 
 | Komponente                      | VPC-ID                | CIDR        | Name |
 | ------------------------------- | --------------------- | ----------- | ---- |
-| VPC                             | vpc-0470f613e45697700 | 10.0.0.0/16 | brunner-m159-vpc |
-| M159-subnet-private1-us-east-1a | siehe AWS nach Anlage | 10.0.128.0/20 | AD/DC-Subnetz |
-| M159-subnet-private2-us-east-1b | siehe AWS nach Anlage | 10.0.144.0/20 | Managed-AD-Subnetz |
-| M159-subnet-public1-us-east-1a  | siehe AWS nach Anlage | 10.0.0.0/20 | Client-/Admin-Center-Subnetz |
-| M159-subnet-public2-us-east-1b  | siehe AWS nach Anlage | 10.0.16.0/20 | reserviert |
+| VPC                             | vpc-08e45e5a278bfb223 | 10.0.0.0/16 | brunner-m159-vpc |
+| M159-subnet-public1-us-east-1a  | subnet-06de448c44ce9b7ad | 10.0.0.0/20 | DC / Client |
+| M159-subnet-public2-us-east-1b  | subnet-0b8b5d07534d41710 | 10.0.16.0/20 | Admin Center |
+
+Hinweis: Abweichend von der urspruenglichen Planung mit 4 Subnetzen (2 privat, 2 oeffentlich)
+wurden nur 2 rein oeffentliche Subnetze umgesetzt, gemaess dem Hinweis oben in diesem Abschnitt,
+dass alle Instanzen ueber RDP von aussen erreichbar sein sollen. AWS Managed AD (Auftrag 5)
+wird diese beiden oeffentlichen Subnetze verwenden.
 
 ---
 
@@ -127,8 +130,8 @@ Alle weiteren Ports sind nur innerhalb des VPCs offen.
 | DNS-Server 1                          | wird von AWS nach Erstellung zugewiesen              |
 | DNS-Server 2                          | wird von AWS nach Erstellung zugewiesen              |
 | Trust Passwort                        | siehe Passwortmanager                                |
-| Subnetz 1                             | M159-subnet-private1-us-east-1a (10.0.128.0/20) |
-| Subnetz 2                             | M159-subnet-private2-us-east-1b (10.0.144.0/20) |
+| Subnetz 1                             | subnet-06de448c44ce9b7ad (10.0.0.0/20, us-east-1a) |
+| Subnetz 2                             | subnet-0b8b5d07534d41710 (10.0.16.0/20, us-east-1b) |
 
 ---
 
@@ -136,9 +139,14 @@ Alle weiteren Ports sind nur innerhalb des VPCs offen.
 
 | Komponente                  | FQDN                     | Elastic IP         | Private IP (CIDR) | Subnetz                         | DNS-Server 1 | DNS-Server 2 | Lokaler Admin | Kennwort |
 | --------------------------- | ------------------------ | ------------------ | ----------------- | ------------------------------- | ------------ | ------------ | ------------- | -------- |
-| IaaS/OnPrem AD DC           | dc.ec2.tbz.brunner     | –                  | 10.0.129.10 | M159-subnet-private1-us-east-1a | 127.0.0.1 | siehe Managed AD | Administrator | siehe Passwortmanager |
-| Windows Server (Client)     | client.ec2.tbz.brunner | nach Erstellung | 10.0.1.20 | M159-subnet-public1-us-east-1a  | 10.0.129.10 | siehe Managed AD | Administrator | siehe Passwortmanager |
-| Windows Server Admin Center | adminctr.ec2.tbz.brunner | nach Erstellung | 10.0.1.30 | M159-subnet-public1-us-east-1a | 10.0.129.10 | siehe Managed AD | Administrator | siehe Passwortmanager |
+| IaaS/OnPrem AD DC           | dc.ec2.tbz.brunner     | siehe AWS Konsole (i-0993c2aaadc311d12) | 10.0.0.10 | M159-subnet-public1-us-east-1a | 127.0.0.1 | siehe Managed AD | Administrator | siehe Passwortmanager |
+| Windows Server (Client)     | client.ec2.tbz.brunner | siehe AWS Konsole (i-0985dd298f9413852) | 10.0.0.20 | M159-subnet-public1-us-east-1a  | 10.0.0.10 | siehe Managed AD | Administrator | siehe Passwortmanager |
+| Windows Server Admin Center | adminctr.ec2.tbz.brunner | siehe AWS Konsole (i-030d59ae3f4a7f40d) | 10.0.16.10 | M159-subnet-public2-us-east-1b | 10.0.0.10 | siehe Managed AD | Administrator | siehe Passwortmanager |
+
+Instance-IDs: DC = i-0993c2aaadc311d12, Client = i-0985dd298f9413852, Admin Center = i-030d59ae3f4a7f40d.
+Security Groups: sg-07f917b5812ea767a (Domain Controller), sg-03be511f23b93d6df (Clients).
+Die tatsaechlichen Elastic/Public IPs sind in der AWS EC2-Konsole je Instanz ersichtlich und
+aendern sich bei jedem Neustart, sofern keine Elastic IP reserviert wurde.
 
 ---
 
