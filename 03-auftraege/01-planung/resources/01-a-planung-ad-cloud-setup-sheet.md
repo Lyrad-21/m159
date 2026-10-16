@@ -117,7 +117,7 @@ wird diese beiden oeffentlichen Subnetze verwenden.
 | Entra ID Domain                  | wird bei Tenant-Erstellung vergeben |
 | Azure Global Administrator       | brunner.daryl@gmail.com |
 | Kennwort Azure Administrator     | siehe Passwortmanager |
-| Entra Connect Server (DC aus AD) | dc.ec2.tbz.brunner |
+| Entra Connect Server (DC aus AD) | dc01.ec2.tbz.brunner |
 
 ### AWS Managed AD
 
@@ -139,9 +139,13 @@ wird diese beiden oeffentlichen Subnetze verwenden.
 
 | Komponente                  | FQDN                     | Elastic IP         | Private IP (CIDR) | Subnetz                         | DNS-Server 1 | DNS-Server 2 | Lokaler Admin | Kennwort |
 | --------------------------- | ------------------------ | ------------------ | ----------------- | ------------------------------- | ------------ | ------------ | ------------- | -------- |
-| IaaS/OnPrem AD DC           | dc.ec2.tbz.brunner     | siehe AWS Konsole (i-0993c2aaadc311d12) | 10.0.0.10 | M159-subnet-public1-us-east-1a | 127.0.0.1 | siehe Managed AD | Administrator | siehe Passwortmanager |
-| Windows Server (Client)     | client.ec2.tbz.brunner | siehe AWS Konsole (i-0985dd298f9413852) | 10.0.0.20 | M159-subnet-public1-us-east-1a  | 10.0.0.10 | siehe Managed AD | Administrator | siehe Passwortmanager |
-| Windows Server Admin Center | adminctr.ec2.tbz.brunner | siehe AWS Konsole (i-030d59ae3f4a7f40d) | 10.0.16.10 | M159-subnet-public2-us-east-1b | 10.0.0.10 | siehe Managed AD | Administrator | siehe Passwortmanager |
+| IaaS/OnPrem AD DC           | dc01.ec2.tbz.brunner     | siehe AWS Konsole (i-0993c2aaadc311d12) | 10.0.0.10 | M159-subnet-public1-us-east-1a | 127.0.0.1 | siehe Managed AD | Administrator | siehe Passwortmanager |
+| Windows Server (Client)     | client01.ec2.tbz.brunner | siehe AWS Konsole (i-0985dd298f9413852) | 10.0.0.20 | M159-subnet-public1-us-east-1a  | 10.0.0.10 | siehe Managed AD | Administrator | siehe Passwortmanager |
+| Windows Server Admin Center | adminctr01.ec2.tbz.brunner | siehe AWS Konsole (i-030d59ae3f4a7f40d) | 10.0.16.10 | M159-subnet-public2-us-east-1b | 10.0.0.10 | siehe Managed AD | Administrator | siehe Passwortmanager |
+
+Hinweis: Die tatsaechlich gesetzten Hostnamen sind DC01, CLIENT01, ADMINCTR01 (mit
+Nummerierung), abweichend von der urspruenglichen Planung ohne "01". FQDNs entsprechend
+angepasst.
 
 Instance-IDs: DC = i-0993c2aaadc311d12, Client = i-0985dd298f9413852, Admin Center = i-030d59ae3f4a7f40d.
 Security Groups: sg-07f917b5812ea767a (Domain Controller), sg-03be511f23b93d6df (Clients).
@@ -170,6 +174,30 @@ Definieren Sie je einen Benutzer dieser 3 Abteilungen
 | Client Secret ID        | siehe Passwortmanager |
 
 
+
+## 11. Ergaenzungen aus Auftrag 3 (DC-Promotion, DNS, RDP-Konzept)
+
+| Feld                                   | Wert |
+| ---------------------------------------- | ---- |
+| DNS-Forwarder                           | 9.9.9.9 (Quad9, statt 8.8.8.8 aus Datenschutz-/Sicherheitsgruenden: keine Nutzerdatenverwertung, blockiert bekannte Schadseiten) |
+| Reverse-Lookup-Zone 1                   | 0.0.10.in-addr.arpa (fuer Subnetz 10.0.0.0/24, DC01 + CLIENT01) |
+| Reverse-Lookup-Zone 2                   | 16.0.10.in-addr.arpa (fuer Subnetz 10.0.16.0/24, ADMINCTR01) |
+| AD-Papierkorb                           | aktiviert |
+| RDP-Gruppenkonzept                      | RDP-Intern (j.meier, t.huber, s.notz) hat RDP-Zugriff auf CLIENT01 (manuell in Remote Desktop Users eingetragen). RDP-Extern (p.gomez) bewusst NICHT zugewiesen, um interne/externe Trennung zu demonstrieren. |
+| Benutzerpasswoerter (4 Abteilungsuser)  | einheitliches Testpasswort, "Password never expires" gesetzt -- pragmatische Entscheidung fuer die Lab-Umgebung, in Produktion waere pro User ein eigenes Passwort mit Ablauf Standard. |
+
+## 12. Ergaenzungen aus Auftrag 4 (Freigaben, Laufwerke, Berechtigungen)
+
+| Feld                                   | Wert |
+| ---------------------------------------- | ---- |
+| Ordnerstruktur                          | C:\Daten\ mit Unterordnern Pool, Abteilungen (GL, Aussendienst, Sekretariat, Buchhaltung, Promoter, Partner, Informatik, Messemitarbeiter), Profiles, Intern, Extern |
+| Freigaben (Jeder=Change)                | Daten (D:), Pool (P:), Abteilungen (A:), Intern (I:), Extern (E:) |
+| Vererbung                               | deaktiviert auf Daten und allen Unterordnern; Standardgruppe "Users (EC2\Users)" entfernt |
+| Globale Abteilungsgruppen               | Sekretariat (j.meier), Buchhaltung (t.huber), GL (s.notz), Promoter (p.gomez, extern) |
+| Uebergruppen (Group Nesting)            | Intern (Mitglieder: Sekretariat, Buchhaltung, GL), Extern (Mitglied: Promoter) |
+| NTFS-Berechtigungsmatrix                | siehe separates Excel-Dokument (Berechtigungsmatrix), nur fuer Aussendienst/Partner/Informatik/Messemitarbeiter bewusst keine eigenen Gruppen/User angelegt (nicht Teil der urspruenglichen Planung) |
+| ABE (Access-Based Enumeration)          | aktiviert fuer alle 5 Freigaben |
+| Eigenes AGDLP-Konzept                   | Fuer Sekretariat und Buchhaltung umgesetzt: je eine DL-Modify- und DL-Read-Domain-Local-Gruppe pro Ordner (DL-Sekretariat-Modify/-Read, DL-Buchhaltung-Modify/-Read), globale Abteilungsgruppen darin verschachtelt, direkte Gruppenberechtigung auf dem Ordner durch die DL-Gruppen ersetzt (GL bleibt bewusst direkt, da abteilungsuebergreifende Sonderrolle) |
 
 ## 10. Hinweise
 
