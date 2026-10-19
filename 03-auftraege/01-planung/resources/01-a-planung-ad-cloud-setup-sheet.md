@@ -123,15 +123,24 @@ wird diese beiden oeffentlichen Subnetze verwenden.
 
 | Feld                                  | Wert                                                 |
 | ------------------------------------- | ---------------------------------------------------- |
-| Active Directory Third-Level-Domäne-2 | aws.tbz.brunner                                    |
-| Trust-Typ                             | Tree-Root Trust                                      |
+| Verzeichnis-ID                        | d-906663ae4c                                         |
+| Active Directory Third-Level-Domäne-2 | aws.tbz.brunner                                      |
+| NetBIOS-Name                          | AWS                                                  |
+| Edition                               | Standard                                             |
+| Betriebssystemversion                 | Windows Server 2019                                  |
+| Trust-Typ                             | Forest Trust (Gesamtstruktur-Vertrauensstellung)    |
+| Trust-Richtung                        | Bidirektional (Two-Way)                              |
+| Trust-Authentifizierung               | Forest-wide Authentication (nicht Selective)        |
 | AWS Managed Admin User                | admin                                                |
 | AWS Managed Admin Passwort            | siehe Passwortmanager                                |
-| DNS-Server 1                          | wird von AWS nach Erstellung zugewiesen              |
-| DNS-Server 2                          | wird von AWS nach Erstellung zugewiesen              |
+| DNS-Server 1                          | 10.0.18.120 (us-east-1a)                            |
+| DNS-Server 2                          | 10.0.6.112 (us-east-1b)                             |
 | Trust Passwort                        | siehe Passwortmanager                                |
+| Bedingte Weiterleitung                | aws.tbz.brunner → 10.0.0.10 (DC01)                  |
+| Security Group                        | sg-021b4a2d9d76bb3a6 (d-906663ae4c_controllers)    |
 | Subnetz 1                             | subnet-06de448c44ce9b7ad (10.0.0.0/20, us-east-1a) |
 | Subnetz 2                             | subnet-0b8b5d07534d41710 (10.0.16.0/20, us-east-1b) |
+| Trust-Status                          | Bestätigt / Aktiv ✅                                 |
 
 ---
 
@@ -198,6 +207,20 @@ Definieren Sie je einen Benutzer dieser 3 Abteilungen
 | NTFS-Berechtigungsmatrix                | siehe separates Excel-Dokument (Berechtigungsmatrix), nur fuer Aussendienst/Partner/Informatik/Messemitarbeiter bewusst keine eigenen Gruppen/User angelegt (nicht Teil der urspruenglichen Planung) |
 | ABE (Access-Based Enumeration)          | aktiviert fuer alle 5 Freigaben |
 | Eigenes AGDLP-Konzept                   | Fuer Sekretariat und Buchhaltung umgesetzt: je eine DL-Modify- und DL-Read-Domain-Local-Gruppe pro Ordner (DL-Sekretariat-Modify/-Read, DL-Buchhaltung-Modify/-Read), globale Abteilungsgruppen darin verschachtelt, direkte Gruppenberechtigung auf dem Ordner durch die DL-Gruppen ersetzt (GL bleibt bewusst direkt, da abteilungsuebergreifende Sonderrolle) |
+
+## 13. Ergaenzungen aus Auftrag 5 (AWS Managed AD, Forest Trust)
+
+| Feld                                   | Wert |
+| ---------------------------------------- | ---- |
+| Conditional Forwarder (DC01)             | DNS Domain: aws.tbz.brunner → IPs: 10.0.18.120 (Master Server 1), 10.0.6.112 (Master Server 2) |
+| Conditional Forwarder Test (nslookup)    | nslookup -type=SOA aws.tbz.brunner → Erfolgreich, SOA-Record vom Managed AD erhalten ✅ |
+| Forest Trust (EC2-Seite, DC01)           | Trust Name: aws.tbz.brunner, Type: Forest, Direction: Two-Way, Scope: This domain only, Authentication: Forest-wide |
+| Forest Trust (AWS-Seite, Managed AD)     | Domain: ec2.tbz.brunner, Type: Forest, Direction: Bidirectional, Conditional Forwarder: 10.0.0.10 |
+| Forest Trust Validierung (EC2)           | Outgoing: Validiert ✅ (with AWS admin credentials for aws.tbz.brunner domain) |
+| Forest Trust Validierung (AWS)           | Bidirectional: Bestätigt ✅ |
+| Trust Passwort                           | siehe Passwortmanager |
+| Kosten AWS Managed AD                    | ca. 18 $/Woche (Standard Edition) |
+| Verzeichnis nach Auftrag 5/6             | Löschen (Stoppen nicht möglich) |
 
 ## 10. Hinweise
 
